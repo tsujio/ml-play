@@ -1,5 +1,6 @@
 import os
 from matplotlib import pyplot as plt
+from matplotlib.font_manager import FontProperties
 import numpy as np
 from sklearn import datasets, model_selection
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
 
     # preprocess train data
     mask = np.bitwise_or(y_train == 0, y_train == 1)
-    x_train = x_train[mask][:, :2]
+    x_train = x_train[mask][:, 2:]
     y_train = y_train[mask]
     y_train = np.array([-1 if y == 0 else 1 for y in y_train])
 
@@ -51,6 +52,8 @@ if __name__ == '__main__':
     perceptron.train(x_train, y_train)
 
     # display
+    fp = FontProperties(fname=r'C:\Windows\Fonts\meiryo.ttc', size=12)
+
     x_c0 = x_train[y_train == -1]
     x_c1 = x_train[y_train == 1]
     plt.scatter(x_c0[:, 0], x_c0[:, 1], label='Setosa')
@@ -58,10 +61,12 @@ if __name__ == '__main__':
 
     w = perceptron.w
     y = lambda x: w[0] / -w[1] * x + w[2] / -w[1]
-    x = np.arange(4, 7, 0.1)
+    x = np.arange(1, 5, 0.1)
     plt.plot(x, y(x))
 
-    plt.xlabel('Sepal Length')
-    plt.ylabel('Sepal Width')
+    plt.xlabel('花弁の長さ', fontproperties=fp)
+    plt.ylabel('花弁の幅', fontproperties=fp)
+    plt.title('パーセプトロンによるアヤメ科の花の分類', fontproperties=fp)
+
     plt.legend()
     plt.show()
