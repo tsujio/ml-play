@@ -17,18 +17,20 @@ class WidrowHoff:
 
             for x, y in zip(list(data), list(label)):
                 # update weight
-                pred = self.predict(x)
                 X = np.repeat(np.array(list(x) + [1])[np.newaxis, :],
                               self.W.shape[0],
                               axis=0)
-                E = np.repeat((self.predict(x) - y)[:, np.newaxis],
+                E = np.repeat((self._predict(x) - y)[:, np.newaxis],
                               self.W.shape[1],
                               axis=1)
                 self.W = self.W - self.rho * E * X
 
-    def predict(self, x):
+    def _predict(self, x):
         x = np.array(list(x) + [1])
         return np.dot(self.W, x)
+
+    def predict(self, x):
+        return np.argmax(self._predict(x), axis=0)
 
 
 if __name__ == '__main__':
