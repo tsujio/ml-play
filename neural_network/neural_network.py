@@ -8,27 +8,84 @@ def sigmoid(x):
 
 
 class NeuralNetwork:
-    pass
+    EPOCH = 100
+
+    def __init__(self, layers, rho=1e-3):
+        self.W_list = []
+        self.rho = rho
+
+        for i in range(1, len(layers)):
+            self.W_list.append(np.random.randn(layers[i], layers[i-1] + 1))
+
+    def train(self, data, label):
+        for i in range(self.__class__.EPOCH):
+            errors = [y[self.predict(x)] != 1
+                      for x, y in zip(list(x_test), list(y_test))]
+            error_rate = len(x_test[errors]) / len(x_test)
+            print(f"error rate={error_rate}")
+
+            # shuffle
+            perm = np.random.permutation(len(data))
+            data, label = data[perm], label[perm]
+
+            for x, y in zip(list(data), list(label)):
+                g_list = self._predict(x)
+
+                # back propagation
+                for i in reversed(range(len(self.W_list))):
+                    _g = g_list[i + 1]
+                    g = g_list[i]
+                    W = self.W_list[i]
+
+                    if i == len(self.W_list) - 1:
+                        e = (_g - y) * _g * (1 - _g)
+                    else:
+                        _W = self.W_list[i + 1][:, :-1]
+                        e = np.dot(_W.T, e) * _g * (1 - _g)
+
+                    G = np.repeat(np.concatenate([g, [1]])[np.newaxis, :],
+                                  W.shape[0],
+                                  axis=0)
+                    E = np.repeat(e[:, np.newaxis],
+                                  W.shape[1],
+                                  axis=1)
+                    self.W_list[i] = self.W_list[i] - self.rho * E * G
+
+    def _predict(self, x):
+        g_list = [x]
+        for W in self.W_list:
+            x = np.concatenate([g_list[-1], [1]])
+            g_list.append(sigmoid(np.dot(W, x)))
+
+        return g_list
+
+    def predict(self, x):
+        return np.argmax(self._predict(x)[-1])
+
+    def predict_array(self, X):
+        return np.array([self.predict(x) for x in list(X)])
+
 
 if __name__ == '__main__':
     # prepare dataset
-    X_c0 = 5 * np.random.randn(100, 2)
-    X_c1 = 5 * np.random.randn(100, 2) + np.array([10, 10])
-
-    data = np.concatenate([X_c0, X_c1])
-    label = np.array([[1, 0] for i in range(100)] +
-                     [[0, 1] for i in range(100)])
+    moons = datasets.make_moons(n_samples=500, noise=0.1)
 
     x_train, x_test, y_train, y_test = model_selection.train_test_split(
-        data, label, test_size=0.2, shuffle=True
+        moons[0], np.eye(2)[moons[1]], test_size=0.2, shuffle=True
     )
 
     # train
-    nn = WidrowHoff(n_dim=2, n_class=2)
-    nn.train(data, label)
+    nn = NeuralNetwork([2, 3, 2])
+    nn.train(x_train, y_train)
 
     # test
     errors = [y[nn.predict(x)] != 1
               for x, y in zip(list(x_test), list(y_test))]
     error_rate = len(x_test[errors]) / len(x_test)
     print(f"error rate={error_rate}")
+
+    X_c0 = moons[0][moons[1] == 0]
+    X_c1 = moons[0][moons[1] == 1]
+    plt.scatter(X_c0[:, 0], X_c0[:, 1])
+    plt.scatter(X_c1[:, 0], X_c1[:, 1])
+    plt.show()
