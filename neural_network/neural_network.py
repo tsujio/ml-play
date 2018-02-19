@@ -3,27 +3,35 @@ import numpy as np
 from sklearn import datasets, model_selection
 
 
+def plot_decision_boundary(data, predict):
+    """ref: http://scikit-learn.org/stable/auto_examples/svm/plot_iris.html"""
+
+    x_min, x_max = data[:, 0].min() - .5, data[:, 0].max() + .5
+    y_min, y_max = data[:, 1].min() - .5, data[:, 1].max() + .5
+    h = .02
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+
+    Z = predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, cmap=plt.cm.coolwarm, alpha=0.8)
+
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
 class NeuralNetwork:
-    EPOCH = 100
+    EPOCH = 3000
 
-    def __init__(self, layers, rho=1e-3):
-        self.W_list = []
+    def __init__(self, layers, rho=1e-1):
+        self.W_list = [np.random.randn(layers[i], layers[i-1] + 1)
+                       for i in range(1, len(layers))]
         self.rho = rho
-
-        for i in range(1, len(layers)):
-            self.W_list.append(np.random.randn(layers[i], layers[i-1] + 1))
 
     def train(self, data, label):
         for i in range(self.__class__.EPOCH):
-            errors = [y[self.predict(x)] != 1
-                      for x, y in zip(list(x_test), list(y_test))]
-            error_rate = len(x_test[errors]) / len(x_test)
-            print(f"error rate={error_rate}")
-
             # shuffle
             perm = np.random.permutation(len(data))
             data, label = data[perm], label[perm]
@@ -32,14 +40,17 @@ class NeuralNetwork:
                 g_list = self._predict(x)
 
                 # back propagation
+                new_W_list = [np.zeros(W.shape) for W in self.W_list]
                 for i in reversed(range(len(self.W_list))):
                     _g = g_list[i + 1]
                     g = g_list[i]
                     W = self.W_list[i]
 
                     if i == len(self.W_list) - 1:
+                        # output layer
                         e = (_g - y) * _g * (1 - _g)
                     else:
+                        # hidden layer
                         _W = self.W_list[i + 1][:, :-1]
                         e = np.dot(_W.T, e) * _g * (1 - _g)
 
@@ -49,7 +60,9 @@ class NeuralNetwork:
                     E = np.repeat(e[:, np.newaxis],
                                   W.shape[1],
                                   axis=1)
-                    self.W_list[i] = self.W_list[i] - self.rho * E * G
+                    new_W_list[i] = W - self.rho * E * G
+
+                self.W_list = new_W_list
 
     def _predict(self, x):
         g_list = [x]
@@ -71,7 +84,7 @@ if __name__ == '__main__':
     moons = datasets.make_moons(n_samples=500, noise=0.1)
 
     x_train, x_test, y_train, y_test = model_selection.train_test_split(
-        moons[0], np.eye(2)[moons[1]], test_size=0.2, shuffle=True
+        moons[0], np.eye(2)[moons[1]], test_size=0.5, shuffle=True
     )
 
     # train
@@ -84,8 +97,12 @@ if __name__ == '__main__':
     error_rate = len(x_test[errors]) / len(x_test)
     print(f"error rate={error_rate}")
 
-    X_c0 = moons[0][moons[1] == 0]
-    X_c1 = moons[0][moons[1] == 1]
+    # display
+    plot_decision_boundary(x_test, lambda x: nn.predict_array(x))
+
+    X_c0 = x_test[np.argmax(y_test, axis=1) == 0]
+    X_c1 = x_test[np.argmax(y_test, axis=1) == 1]
     plt.scatter(X_c0[:, 0], X_c0[:, 1])
     plt.scatter(X_c1[:, 0], X_c1[:, 1])
+
     plt.show()
