@@ -51,7 +51,8 @@ if __name__ == '__main__':
     plt.scatter(X_c1[:, 0], X_c1[:, 1])
 
     w = widrow_hoff.W[0] - widrow_hoff.W[1]
-    y = lambda x: w[0] / -w[1] * x + w[2] / -w[1]
+
+    def y(x): return w[0] / -w[1] * x + w[2] / -w[1]
     x = np.arange(-10, 20, 0.1)
     plt.plot(x, y(x))
 
