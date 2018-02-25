@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from sklearn import datasets, model_selection
+from sklearn import datasets
 
 
 def kl_expansion(d, X):
@@ -10,25 +10,19 @@ def kl_expansion(d, X):
                  axis=0) / X.shape[0]
     la, v = np.linalg.eig(cov)
     indices = np.array(list(reversed(np.argsort(la))))
-    return v[indices[:d]]
+    return v.T[indices[:d]]
 
 
 if __name__ == '__main__':
-    X = np.array([3, 1]) * np.random.randn(50, 2)
-    w = np.pi / 3
-    A = np.array([[np.cos(w), -np.sin(w)],
-                  [np.sin(w), np.cos(w)]])
-    X = np.array([np.dot(A, x) for x in X])
+    iris = datasets.load_iris()
 
-    B = kl_expansion(1, X)
-
+    A = kl_expansion(2, iris.data)
     from sklearn import decomposition
-    pca = decomposition.PCA(n_components=1)
-    Xt = pca.fit(X)
-    print(B)
-    print(pca.components_)
+    pca = decomposition.PCA(n_components = 2)
+    pca.fit(iris.data)
+#    A = pca.components_
 
-    plt.scatter(X[:, 0], X[:, 1])
-    plt.xlim(-10, 10)
-    plt.ylim(-10, 10)
-#    plt.show()
+    X = np.array([np.dot(A, x) for x in iris.data])
+
+    plt.scatter(X[:, 0], X[:, 1], c=iris.target)
+    plt.show()
