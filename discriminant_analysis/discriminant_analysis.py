@@ -1,6 +1,5 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from sklearn import datasets
 
 
 def discriminant_analysis(X, y):
@@ -16,18 +15,25 @@ def discriminant_analysis(X, y):
         pi = len(y[y == yi]) / len(y)
         mi = np.array([np.sum(Xi[:, i]) / Xi.shape[0]
                        for i in range(Xi.shape[1])])
-        covi = np.sum([np.dot((x - mi)[:, np.newaxis], (x - mi)) for x in Xi],
+        covi = np.sum([np.dot((x - mi)[:, np.newaxis],
+                              (x - mi)[np.newaxis, :]) for x in Xi],
                       axis=0) / Xi.shape[0]
         cov_w += pi * covi
 
-        cov_b += pi * np.dot((mi - m)[:, np.newaxis], (mi - m))
+        cov_b += pi * np.dot((mi - m)[:, np.newaxis], (mi - m)[np.newaxis, :])
 
     la, v = np.linalg.eig(
         np.dot(np.linalg.inv(cov_w), cov_b)
     )
-
-    
+    return v[np.argmax(la)]
 
 
 if __name__ == '__main__':
-    pass
+    n, dim = 300, 2
+    C = np.array([[0., -0.23], [0.83, .23]])
+    X = np.r_[np.dot(np.random.randn(n, dim), C),
+              np.dot(np.random.randn(n, dim), C) + np.array([1, 1])]
+    y = np.hstack((np.zeros(n), np.ones(n)))
+
+    plt.scatter(X[:, 0], X[:, 1], c=y)
+    plt.show()
