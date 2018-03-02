@@ -15,15 +15,21 @@ def discriminant_analysis(X, y):
         pi = len(y[y == yi]) / len(y)
         mi = np.array([np.sum(Xi[:, i]) / Xi.shape[0]
                        for i in range(Xi.shape[1])])
-        covi = np.sum([np.dot((x - mi)[:, np.newaxis],
-                              (x - mi)[np.newaxis, :]) for x in Xi],
-                      axis=0) / Xi.shape[0]
+#        covi = np.sum([np.dot((x - mi)[:, np.newaxis],
+#                              (x - mi)[np.newaxis, :]) for x in Xi],
+#                      axis=0) / Xi.shape[0]
+        covi = np.sum([
+            (x - mi).reshape(Xi.shape[1], 1) * (x - mi).reshape(1, Xi.shape[1])
+            for x in Xi
+        ], axis=0) / Xi.shape[0]
         cov_w += pi * covi
 
-        cov_b += pi * np.dot((mi - m)[:, np.newaxis], (mi - m)[np.newaxis, :])
+#        cov_b += pi * np.dot((mi - m)[:, np.newaxis], (mi - m)[np.newaxis, :])
+        cov_b += pi * (mi - m).reshape(Xi.shape[1], 1) * (mi - m).reshape(1, Xi.shape[1])
 
     la, v = np.linalg.eig(
-        np.dot(np.linalg.inv(cov_w), cov_b)
+#        np.dot(np.linalg.inv(cov_w), cov_b)
+        np.linalg.inv(cov_w) * cov_b
     )
     return v[np.argmax(la)]
 
