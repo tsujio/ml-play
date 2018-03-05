@@ -14,9 +14,9 @@ x_train, x_test, y_train, y_test = model_selection.train_test_split(
 
 NeuralNetwork.EPOCH = 1
 
-nn = NeuralNetwork([x_train.shape[1], 100, y_train.shape[1]], rho=1e-1)
+nn = NeuralNetwork([x_train.shape[1], 100, y_train.shape[1]], rho=1e-2)
 
-for i in range(10000):
+for i in range(100000):
     nn.train(x_train, y_train)
 
     errors = [y[nn.predict(x)] != 1
