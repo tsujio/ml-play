@@ -60,7 +60,8 @@ if __name__ == '__main__':
     plt.scatter(x_c1[:, 0], x_c1[:, 1], label='Versicolour')
 
     w = perceptron.w
-    y = lambda x: w[0] / -w[1] * x + w[2] / -w[1]
+
+    def y(x): return w[0] / -w[1] * x + w[2] / -w[1]
     x = np.arange(1, 5, 0.1)
     plt.plot(x, y(x))
 
